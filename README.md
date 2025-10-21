@@ -26,7 +26,13 @@ const KEY_SIZE_BITS: usize = KEY_SIZE_BYTES * 8;
 - Docker
 - Docker Compose
 - Una cuenta en [qukaydee.com](https://qukaydee.com) con claves configuradas y guardadas en el directorio [certs](certs/).
-- Recomiendo realizar el [tutorial](https://qukaydee.com/pages/getting_started) que guía por el proceso de conseguir estas claves. Las claves y certificados proporcionadas son las asociadas a mi cuenta y podrían dejar de ser válidas.
+- Realizar el [tutorial](https://qukaydee.com/pages/getting_started) que guía por el proceso de conseguir estas claves.
+- Es necesario modificar la variable de entorno $ACCOUNT_ID en el archivo docker-compose.yaml por el identificar de la cuenta correspondiente. El archivo "Client CA Certificate" (se descarga desde qukaydee) contiene el ID de la cuenta.
+
+```
+account-ACCOUNT_ID-server-ca-qukaydee-com.crt
+```
+
 - Rust (si deseas compilar o probar localmente)
 
 ### 2. Construir y levantar
