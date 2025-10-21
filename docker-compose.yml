@@ -1,0 +1,40 @@
+networks:
+  sae2sae:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.8.0/24 # Define un rango de subred para esta red
+
+services:
+  sae-1:
+    image: sae # Nombre de la imagen
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sae-1
+    environment:
+      ACCOUNT_ID: "2540"
+      CERT_DIR: "/app/"
+      SAE_ID: 1
+    hostname: sae-1
+    command: ["/app/start.sh"]
+    networks: 
+      sae2sae:
+        ipv4_address: 192.168.8.2 # IP estática
+
+  sae-2:
+    image: sae # Nombre de la imagen
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sae-2
+    hostname: sae-2
+    environment:
+      ACCOUNT_ID: "2540"
+      CERT_DIR: "/app/"
+      SAE_ID: 2
+    command: ["/app/start.sh"]
+    networks: 
+      sae2sae:
+        ipv4_address: 192.168.8.3 # IP estática
+
