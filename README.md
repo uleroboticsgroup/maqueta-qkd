@@ -25,7 +25,7 @@ const KEY_SIZE_BITS: usize = KEY_SIZE_BYTES * 8;
 ### 1. Pre-requisitos
 - Docker
 - Docker Compose
-- Una cuenta en [qukaydee.com](https://qukaydee.com) con claves configuradas y guardadas en el directorio [certs](certs/).
+- Una cuenta en [qukaydee.com](https://qukaydee.com) con claves configuradas y guardadas en el directorio [certs](certs/). Es necesario crear previamente el directorio mencionado.
 - Realizar el [tutorial](https://qukaydee.com/pages/getting_started) que guía por el proceso de conseguir estas claves.
 - Es necesario modificar la variable de entorno $ACCOUNT_ID en el archivo docker-compose.yaml por el identificar de la cuenta correspondiente. El archivo "Client CA Certificate" (se descarga desde qukaydee) contiene el ID de la cuenta.
 
