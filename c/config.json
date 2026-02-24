@@ -1,0 +1,13 @@
+{
+        "account_id": "",
+        "urlStatus": "https://kme-1.acct-.etsi-qkd-api.qukaydee.com/api/v1/keys/sae-2/status",
+        "urlGetKey": "https://kme-{SAE_MAESTRO}.acct-{ACCOUNT_ID}.etsi-qkd-api.qukaydee.com/api/v1/keys/sae-{SAE_ESCLAVO}/enc_keys?number=2&size=1024",
+        "urlGetKeyID": "https://kme-{SAE_ID}.acct-{ACCOUNT_ID}.etsi-qkd-api.qukaydee.com/api/v1/keys/sae-1/dec_keys?key_ID={KEY_ID}",
+        "certs": [
+   {
+                "sae1-crt": "value",
+                "sae1-key":"value",
+                "sae2-crt":"value",
+                "sae2-key":"value"
+                }]
+}

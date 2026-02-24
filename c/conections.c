@@ -2,9 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <curl/curl.h>
-#include <stdint.h>
-
-#include "../dilithium/ref/api.h"   // dilithium/ref/api.h
 
 #define ACCOUNT_ID "3009"
 
@@ -33,15 +30,15 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
 
 int main(void) {
 
-    unsigned char pk[CRYPTO_PUBLICKEYBYTES];
-    unsigned char sk[CRYPTO_SECRETKEYBYTES];
+    // unsigned char pk[CRYPTO_PUBLICKEYBYTES];
+    // unsigned char sk[CRYPTO_SECRETKEYBYTES];
 
-    if (crypto_sign_keypair(pk, sk) != 0) {
-        printf("Dilithium keypair generation failed\n");
-        return -1;
-    }
+    // if (crypto_sign_keypair(pk, sk) != 0) {
+    //     printf("Dilithium keypair generation failed\n");
+    //     return -1;
+    // }
 
-    printf("Dilithium keypair generated\n");
+    // printf("Dilithium keypair generated\n");
 
     CURL *curl;
     CURLcode res;
@@ -63,11 +60,11 @@ int main(void) {
         curl_easy_setopt(curl, CURLOPT_URL, url);
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-        curl_easy_setopt(curl, CURLOPT_SSLCERT, "../../certs/sae-1.crt");
-        curl_easy_setopt(curl, CURLOPT_SSLKEY, "../../certs/sae-1.key");
+        curl_easy_setopt(curl, CURLOPT_SSLCERT, "../certs/sae-1.crt");
+        curl_easy_setopt(curl, CURLOPT_SSLKEY, "../certs/sae-1.key");
 
         char ca_cert_path[256];
-        snprintf(ca_cert_path, sizeof(ca_cert_path),"../../certs/account-%s-server-ca-qukaydee-com.crt",ACCOUNT_ID);
+        snprintf(ca_cert_path, sizeof(ca_cert_path),"../certs/account-%s-server-ca-qukaydee-com.crt",ACCOUNT_ID);
 
         curl_easy_setopt(curl, CURLOPT_CAINFO, ca_cert_path);
 
