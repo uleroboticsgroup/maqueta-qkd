@@ -3,45 +3,84 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "dilithium/ref/api.h" 
+#include <stdbool.h>
 
+typedef struct EncryptedMessage{
+    char* key_id;
+    unsigned char* ciphertext;
+    size_t length;
+} EncryptedMessage;
 
-
-int encrypt_dilithium() {
-    uint8_t pk[pqcrystals_dilithium2_PUBLICKEYBYTES];
-    uint8_t sk[pqcrystals_dilithium2_SECRETKEYBYTES];
-    
-    const char *msg = "Hello, world!";
-    size_t msglen = strlen(msg);
-    
-    uint8_t *sm = malloc(pqcrystals_dilithium2_BYTES + msglen);
-    size_t smlen;
-    
-    uint8_t *recovered_msg = malloc(msglen + pqcrystals_dilithium2_BYTES);
-    size_t recovered_msglen;
-
-    if (!sm || !recovered_msg) {
-        fprintf(stderr, "Memory allocation failed\n");
-        return 1;
+//Encrypt the menssage with key get with QKD
+EncryptedMessage* encrypt_message(const char* key_id, const unsigned char* key, size_t key_len, const unsigned char* plaintext, size_t plain_len) {
+    if (key_len < plain_len) {
+        printf("Error: La clave es demasiado corta.\n");
+        return NULL;
     }
 
-    if (pqcrystals_dilithium2_ref_keypair(pk, sk) != 0) {
-        printf("Keypair generation failed\n");
-        free(sm); free(recovered_msg);
-        return 1;
-    }
-    printf("Keypair generated successfully.\n");
+    EncryptedMessage* msg = malloc(sizeof(EncryptedMessage));
+    msg->key_id = strdup(key_id);
+    msg->length = plain_len;
+    msg->ciphertext = malloc(plain_len);
 
-    pqcrystals_dilithium2_ref(sm, &smlen, (const uint8_t *)msg, msglen,NULL,0, sk);
-    printf("Message signed. Signed message length: %zu\n", smlen);
-
-    if (pqcrystals_dilithium2_ref_open(recovered_msg, &recovered_msglen, sm, smlen,NULL,0, pk) != 0) {
-        printf("Signature verification failed!\n");
-    } else {
-        recovered_msg[recovered_msglen] = '\0';
-        printf("Verification successful! Message: %s\n", recovered_msg);
+    for (size_t i = 0; i < plain_len; i++) {
+        msg->ciphertext[i] = plaintext[i] ^ key[i];
     }
 
-    free(sm);
-    free(recovered_msg);
-    return 0;
+    return msg;
 }
+
+//Decrypt the message with the same key of QKD
+char* decrypt_message(const EncryptedMessage* msg, const unsigned char* key, size_t key_len) {
+    if (key_len < msg->length) {
+        printf("Error: Clave insuficiente para desencriptar.\n");
+        return NULL;
+    }
+
+    char* plaintext = malloc(msg->length + 1);
+    
+    for (size_t i = 0; i < msg->length; i++) {
+        plaintext[i] = (char)(msg->ciphertext[i] ^ key[i]);
+    }
+    plaintext[msg->length] = '\0';
+
+    return plaintext;
+}
+
+void free_message(EncryptedMessage* msg) {
+    free(msg->key_id);
+    free(msg->ciphertext);
+    free(msg);
+}
+
+// int encrypt_dilithium() {
+//     uint8_t pk[pqcrystals_dilithium2_PUBLICKEYBYTES];
+//     uint8_t sk[pqcrystals_dilithium2_SECRETKEYBYTES];  
+//     const char *msg = "Hello, world!";
+//     size_t msglen = strlen(msg);
+//     uint8_t *sm = malloc(pqcrystals_dilithium2_BYTES + msglen);
+//     size_t smlen; 
+//     uint8_t *recovered_msg = malloc(msglen + pqcrystals_dilithium2_BYTES);
+//     size_t recovered_msglen;
+//     if (!sm || !recovered_msg) {
+//         fprintf(stderr, "Memory allocation failed\n");
+//         return 1;
+//     }
+//     if (pqcrystals_dilithium2_ref_keypair(pk, sk) != 0) {
+//         printf("Keypair generation failed\n");
+//         free(sm); free(recovered_msg);
+//         return 1;
+//     }
+
+//     pqcrystals_dilithium2_ref(sm, &smlen, (const uint8_t *)msg, msglen,NULL,0, sk);
+//     printf("Message signed. Signed message length: %zu\n", smlen);
+//     if (pqcrystals_dilithium2_ref_open(recovered_msg, &recovered_msglen, sm, smlen,NULL,0, pk) != 0) {
+//         printf("Signature verification failed!\n");
+//     } else {
+//         recovered_msg[recovered_msglen] = '\0';
+//         printf("Verification successful! Message: %s\n", recovered_msg);
+//     }
+//     free(sm);
+//     free(recovered_msg);
+//     return 0;
+// }

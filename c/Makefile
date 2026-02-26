@@ -1,10 +1,10 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c11 -g -I$(CJSONDIR)
+CFLAGS = -Wall -Wextra -std=gnu11 -g -I$(CJSONDIR)
 LDFLAGS = -lcurl
 
 SRCDIR = .
 CJSONDIR = ./cJSON
-SRC = $(SRCDIR)/conections.c $(SRCDIR)/handle_json.c $(CJSONDIR)/cJSON.c
+SRC = $(SRCDIR)/conections.c $(SRCDIR)/handle_json.c $(CJSONDIR)/cJSON.c $(SRCDIR)/cryptografy.c
 OBJS = $(SRC:.c=.o)
 TARGET = conections_app
 
