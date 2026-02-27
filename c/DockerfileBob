@@ -1,0 +1,6 @@
+FROM gcc:latest
+ADD cJSON /usr/src/qkd
+ADD core /usr/src/qkd
+WORKDIR /usr/src/qkd
+COPY bob.c .
+CMD ["make", "run"]

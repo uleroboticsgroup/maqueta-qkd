@@ -1,0 +1,7 @@
+FROM gcc:latest
+RUN apt-get update && apt-get install -y make
+ADD cJSON /usr/src/qkd
+ADD core /usr/src/qkd
+WORKDIR /usr/src/qkd
+COPY alice.c .
+CMD ["make", "run"]

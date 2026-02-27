@@ -4,6 +4,9 @@
 #include <curl/curl.h>
 #include "handle_json.h"
 #include "cryptografy.h"
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 #define URL_GETKEY "https://kme-1.acct-%s.etsi-qkd-api.qukaydee.com/api/v1/keys/sae-2%s"
 #define URL_GETKEYBYID "https://kme-2.acct-%s.etsi-qkd-api.qukaydee.com/api/v1/keys/sae-1/dec_keys?key_ID=%s"
@@ -29,7 +32,7 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
     return realsize;
 }
 
-static char *connection(const char *url, const char *cert_path, const char *key_path, const char *ca_path) {
+static char *connection_qkd(const char *url, const char *cert_path, const char *key_path, const char *ca_path) {
     CURL *curl;
     CURLcode res;
     struct MemoryStruct chunk = { .memory = malloc(1), .size = 0 };
@@ -62,45 +65,4 @@ static char *connection(const char *url, const char *cert_path, const char *key_
         curl_easy_cleanup(curl);
     }
     return chunk.memory;
-}
-
-int main(void) {
-    curl_global_init(CURL_GLOBAL_DEFAULT);
-    const char* text = "Hola Mundo";
-
-    char *acct = account_id();
-    if (!acct) return 1;
-
-    char url[1024];
-    char ca_path[512];
-    snprintf(ca_path, sizeof(ca_path), "../certs/account-%s-server-ca-qukaydee-com.crt", acct);
-
-    snprintf(url, sizeof(url), URL_GETKEY, acct, "/enc_keys?number=2&size=1024");
-    char *response = connection(url, "../certs/sae-1.crt", "../certs/sae-1.key", ca_path);
-    char *key=get_key(response);
-    size_t len = strlen(text);
-    EncryptedMessage* msg = encrypt_message(get_key_id(response), (unsigned char*)key, strlen(key), (unsigned char*)text, len);
-
-    if (response) {
-        char *k_id = get_key_id(response); 
-        
-        if (k_id) {
-            snprintf(url, sizeof(url), URL_GETKEYBYID, acct, k_id);
-            char *decp_response = connection(url, "../certs/sae-2.crt", "../certs/sae-2.key", ca_path);
-            
-            if (msg) {
-                char* textDecript = decrypt_message(msg, (unsigned char*)get_key(decp_response), strlen(get_key(decp_response)));
-                printf("Mensaje: %s\n", textDecript);
-
-                free(textDecript);
-                free_message(msg);
-            }
-            free(decp_response);
-        }
-        free(response);
-    }
-
-    free(acct);
-    curl_global_cleanup();
-    return 0;
 }

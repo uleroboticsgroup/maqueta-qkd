@@ -1,0 +1,38 @@
+networks:
+  qkd:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.8.0/24 # Define un rango de subred para esta red
+
+services:
+  saebob:
+    image: saebob
+    build:
+      context: .
+      dockerfile: DockerfileBob
+    container_name: saebob
+    environment:
+      ACCOUNT_ID: "3009"
+      CERT_DIR: "/app/"
+      SAE_ID: 1
+    hostname: saebob
+    networks: 
+      qkd:
+        ipv4_address: 192.168.8.2 # IP estática
+
+  saealice:
+    image: saealice
+    build:
+      context: .
+      dockerfile: DockerfileAlice
+    container_name: saealice
+    hostname: saealice
+    environment:
+      ACCOUNT_ID: "3009"
+      CERT_DIR: "/app/"
+      SAE_ID: 2
+    networks: 
+      qkd:
+        ipv4_address: 192.168.8.3 # IP estática
+

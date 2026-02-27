@@ -4,9 +4,9 @@ LDFLAGS = -lcurl
 
 SRCDIR = .
 CJSONDIR = ./cJSON
-SRC = $(SRCDIR)/conections.c $(SRCDIR)/handle_json.c $(CJSONDIR)/cJSON.c $(SRCDIR)/cryptografy.c
+SRC = $(SRCDIR)/bob.c $(SRCDIR)/core/conections.c $(SRCDIR)/core/handle_json.c $(CJSONDIR)/core/cJSON.c $(SRCDIR)/core/cryptografy.c
 OBJS = $(SRC:.c=.o)
-TARGET = conections_app
+TARGET = bob
 
 .PHONY: all clean run
 
