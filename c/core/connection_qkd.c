@@ -8,10 +8,6 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#define URL_GETKEY "https://kme-1.acct-%s.etsi-qkd-api.qukaydee.com/api/v1/keys/sae-2%s"
-#define URL_GETKEYBYID "https://kme-2.acct-%s.etsi-qkd-api.qukaydee.com/api/v1/keys/sae-1/dec_keys?key_ID=%s"
-
-
 struct MemoryStruct {
     char *memory;
     size_t size;
@@ -32,7 +28,7 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
     return realsize;
 }
 
-static char *connection_qkd(const char *url, const char *cert_path, const char *key_path, const char *ca_path) {
+char *connection_qkd(const char *url, const char *cert_path, const char *key_path, const char *ca_path) {
     CURL *curl;
     CURLcode res;
     struct MemoryStruct chunk = { .memory = malloc(1), .size = 0 };

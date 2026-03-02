@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-#include "cJSON/cJSON.h"
+#include "cJSON.h"
 #include "handle_json.h"
 
 //Read the content of the file
@@ -92,5 +92,5 @@ char *get_key(const char *json_data) {
 
 //Get the account id
 char *account_id(void) {
-    return get_config_value("./config.json", "ACCOUNT_ID");
+    return get_config_value("./core/config.json", "ACCOUNT_ID");
 }

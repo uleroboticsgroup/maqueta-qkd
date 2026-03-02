@@ -1,8 +1,11 @@
+/** 
+ * This class encrypt 
+ * **/
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "dilithium/ref/api.h" 
+//#include "dilithium/ref/api.h" 
 #include <stdbool.h>
 
 typedef struct EncryptedMessage{
@@ -14,7 +17,7 @@ typedef struct EncryptedMessage{
 //Encrypt the menssage with key get with QKD
 EncryptedMessage* encrypt_message(const char* key_id, const unsigned char* key, size_t key_len, const unsigned char* plaintext, size_t plain_len) {
     if (key_len < plain_len) {
-        printf("Error: La clave es demasiado corta.\n");
+        printf("Error: The key is too short\n");
         return NULL;
     }
 
@@ -33,7 +36,7 @@ EncryptedMessage* encrypt_message(const char* key_id, const unsigned char* key, 
 //Decrypt the message with the same key of QKD
 char* decrypt_message(const EncryptedMessage* msg, const unsigned char* key, size_t key_len) {
     if (key_len < msg->length) {
-        printf("Error: Clave insuficiente para desencriptar.\n");
+        printf("Error: The key is not enough\n");
         return NULL;
     }
 
@@ -47,6 +50,33 @@ char* decrypt_message(const EncryptedMessage* msg, const unsigned char* key, siz
     return plaintext;
 }
 
+EncryptedMessage* parse_incoming_message(const char* json_str, const char* key_id) {
+    EncryptedMessage* msg = malloc(sizeof(EncryptedMessage));
+    msg->key_id = strdup(key_id);
+    
+    const char* array_start = strstr(json_str, "\"ciphertext\":[");
+    if (!array_start) return NULL;
+    
+    array_start += 14;
+    
+    size_t count = 1;
+    for (const char* p = array_start; *p && *p != ']'; p++) {
+        if (*p == ',') count++;
+    }
+    
+    msg->length = count;
+    msg->ciphertext = malloc(count);
+    
+    char* parser_ptr = (char*)array_start;
+    for (size_t i = 0; i < count; i++) {
+        msg->ciphertext[i] = (unsigned char)strtol(parser_ptr, &parser_ptr, 10);
+        if (*parser_ptr == ',') parser_ptr++;
+    }
+    
+    return msg;
+}
+
+//Free the pointers
 void free_message(EncryptedMessage* msg) {
     free(msg->key_id);
     free(msg->ciphertext);
