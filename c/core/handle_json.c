@@ -1,3 +1,6 @@
+/** 
+ * Handle the json responses and get the key_id and the key.
+ * **/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,7 +8,7 @@
 #include "cJSON.h"
 #include "handle_json.h"
 
-//Read the content of the file
+//Read the content of the file config.json to get the account id
 static char *read_file(const char *path) {
     struct stat st;
     if (stat(path, &st) != 0) return NULL;
@@ -48,46 +51,34 @@ static char *get_config_value(const char *path, const char *key) {
     return result;
 }
 
-//Get the key id from the json response
-char *get_key_id(const char *json_data) {
+//Extract the field from the json response
+static char *extract_first_key_field(const char *json_data, const char *field) {
     if (!json_data) return NULL;
     cJSON *root = cJSON_Parse(json_data);
     if (!root) return NULL;
 
-    char *extracted_id = NULL;
+    char *result = NULL;
     cJSON *keys = cJSON_GetObjectItemCaseSensitive(root, "keys");
     if (cJSON_IsArray(keys) && cJSON_GetArraySize(keys) > 0) {
         cJSON *first_key = cJSON_GetArrayItem(keys, 0);
-        cJSON *id_item = cJSON_GetObjectItemCaseSensitive(first_key, "key_ID");
-        if (cJSON_IsString(id_item) && id_item->valuestring) {
-            size_t id_len = strlen(id_item->valuestring);
-            extracted_id = malloc(id_len + 1);
-            if (extracted_id) memcpy(extracted_id, id_item->valuestring, id_len + 1);
+        cJSON *item = cJSON_GetObjectItemCaseSensitive(first_key, field);
+        if (cJSON_IsString(item) && item->valuestring) {
+            result = strdup(item->valuestring);
         }
     }
+
     cJSON_Delete(root);
-    return extracted_id;
+    return result;
+}
+
+//Get the key_id from the json response
+char *get_key_id(const char *json_data) {
+    return extract_first_key_field(json_data, "key_ID");
 }
 
 //Get the key from the json response
 char *get_key(const char *json_data) {
-    if (!json_data) return NULL;
-    cJSON *root = cJSON_Parse(json_data);
-    if (!root) return NULL;
-
-    char *extracted_id = NULL;
-    cJSON *keys = cJSON_GetObjectItemCaseSensitive(root, "keys");
-    if (cJSON_IsArray(keys) && cJSON_GetArraySize(keys) > 0) {
-        cJSON *first_key = cJSON_GetArrayItem(keys, 0);
-        cJSON *id_item = cJSON_GetObjectItemCaseSensitive(first_key, "key");
-        if (cJSON_IsString(id_item) && id_item->valuestring) {
-            size_t id_len = strlen(id_item->valuestring);
-            extracted_id = malloc(id_len + 1);
-            if (extracted_id) memcpy(extracted_id, id_item->valuestring, id_len + 1);
-        }
-    }
-    cJSON_Delete(root);
-    return extracted_id;
+    return extract_first_key_field(json_data, "key");
 }
 
 //Get the account id

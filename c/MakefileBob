@@ -4,7 +4,7 @@ LDFLAGS = -lcurl
 
 SRCDIR = .
 CJSONDIR = ./cJSON
-SRC = $(SRCDIR)/bob.c $(SRCDIR)/core/connection_qkd.c $(SRCDIR)/core/handle_json.c $(CJSONDIR)/cJSON.c $(SRCDIR)/core/cryptografy.c
+SRC = $(SRCDIR)/bob.c $(SRCDIR)/core/connection_qkd.c $(SRCDIR)/core/handle_json.c $(CJSONDIR)/cJSON.c $(SRCDIR)/core/cryptografy.c $(SRCDIR)/core/handle_msg.c
 OBJS = $(SRC:.c=.o)
 TARGET = bob
 

@@ -8,6 +8,7 @@ COPY core ./core
 COPY certs ./certs
 
 COPY bob.c .
+COPY lorem.txt .
 COPY MakefileBob Makefile
 
 CMD ["make", "run"]

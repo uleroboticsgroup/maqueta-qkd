@@ -1,6 +1,6 @@
 /** 
- * This class encrypt 
- * **/
+ * Encrypt and decrypt messages using a XOR cipher.
+*/
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
@@ -14,58 +14,73 @@ typedef struct EncryptedMessage{
     size_t length;
 } EncryptedMessage;
 
-//Encrypt the menssage with key get with QKD
+// Encrypt the plaintext using XOR with the key
 EncryptedMessage* encrypt_message(const char* key_id, const unsigned char* key, size_t key_len, const unsigned char* plaintext, size_t plain_len) {
-    if (key_len < plain_len) {
-        printf("Error: The key is too short\n");
-        return NULL;
-    }
+    if (key_len == 0) return NULL;
 
     EncryptedMessage* msg = malloc(sizeof(EncryptedMessage));
+    if (!msg) return NULL;
+
     msg->key_id = strdup(key_id);
     msg->length = plain_len;
     msg->ciphertext = malloc(plain_len);
 
+    if (!msg->ciphertext) {
+        free(msg->key_id);
+        free(msg);
+        return NULL;
+    }
+
     for (size_t i = 0; i < plain_len; i++) {
-        msg->ciphertext[i] = plaintext[i] ^ key[i];
+        msg->ciphertext[i] = plaintext[i] ^ key[i % key_len];
     }
 
     return msg;
 }
 
-//Decrypt the message with the same key of QKD
+// Decrypt the ciphertext using XOR with the key
 char* decrypt_message(const EncryptedMessage* msg, const unsigned char* key, size_t key_len) {
-    if (key_len < msg->length) {
-        printf("Error: The key is not enough\n");
-        return NULL;
-    }
+    if (key_len == 0) return NULL;
 
     char* plaintext = malloc(msg->length + 1);
+    if (!plaintext) return NULL;
     
     for (size_t i = 0; i < msg->length; i++) {
-        plaintext[i] = (char)(msg->ciphertext[i] ^ key[i]);
+        plaintext[i] = (char)(msg->ciphertext[i] ^ key[i % key_len]);
     }
     plaintext[msg->length] = '\0';
 
     return plaintext;
 }
 
+// Parse the incoming JSON string to extract the ciphertext and key_id
 EncryptedMessage* parse_incoming_message(const char* json_str, const char* key_id) {
-    EncryptedMessage* msg = malloc(sizeof(EncryptedMessage));
-    msg->key_id = strdup(key_id);
-    
     const char* array_start = strstr(json_str, "\"ciphertext\":[");
     if (!array_start) return NULL;
     
     array_start += 14;
     
     size_t count = 1;
-    for (const char* p = array_start; *p && *p != ']'; p++) {
-        if (*p == ',') count++;
+    if (*array_start == ']') {
+        count = 0;
+    } else {
+        for (const char* p = array_start; *p && *p != ']'; p++) {
+            if (*p == ',') count++;
+        }
     }
     
+    EncryptedMessage* msg = malloc(sizeof(EncryptedMessage));
+    if (!msg) return NULL;
+
+    msg->key_id = strdup(key_id);
     msg->length = count;
-    msg->ciphertext = malloc(count);
+    
+    msg->ciphertext = malloc(count > 0 ? count : 1);
+    if (!msg->ciphertext) {
+        free(msg->key_id);
+        free(msg);
+        return NULL;
+    }
     
     char* parser_ptr = (char*)array_start;
     for (size_t i = 0; i < count; i++) {
@@ -76,41 +91,11 @@ EncryptedMessage* parse_incoming_message(const char* json_str, const char* key_i
     return msg;
 }
 
-//Free the pointers
+// Free the memory allocated for the EncryptedMessage
 void free_message(EncryptedMessage* msg) {
-    free(msg->key_id);
-    free(msg->ciphertext);
-    free(msg);
+    if (msg) {
+        free(msg->key_id);
+        free(msg->ciphertext);
+        free(msg);
+    }
 }
-
-// int encrypt_dilithium() {
-//     uint8_t pk[pqcrystals_dilithium2_PUBLICKEYBYTES];
-//     uint8_t sk[pqcrystals_dilithium2_SECRETKEYBYTES];  
-//     const char *msg = "Hello, world!";
-//     size_t msglen = strlen(msg);
-//     uint8_t *sm = malloc(pqcrystals_dilithium2_BYTES + msglen);
-//     size_t smlen; 
-//     uint8_t *recovered_msg = malloc(msglen + pqcrystals_dilithium2_BYTES);
-//     size_t recovered_msglen;
-//     if (!sm || !recovered_msg) {
-//         fprintf(stderr, "Memory allocation failed\n");
-//         return 1;
-//     }
-//     if (pqcrystals_dilithium2_ref_keypair(pk, sk) != 0) {
-//         printf("Keypair generation failed\n");
-//         free(sm); free(recovered_msg);
-//         return 1;
-//     }
-
-//     pqcrystals_dilithium2_ref(sm, &smlen, (const uint8_t *)msg, msglen,NULL,0, sk);
-//     printf("Message signed. Signed message length: %zu\n", smlen);
-//     if (pqcrystals_dilithium2_ref_open(recovered_msg, &recovered_msglen, sm, smlen,NULL,0, pk) != 0) {
-//         printf("Signature verification failed!\n");
-//     } else {
-//         recovered_msg[recovered_msglen] = '\0';
-//         printf("Verification successful! Message: %s\n", recovered_msg);
-//     }
-//     free(sm);
-//     free(recovered_msg);
-//     return 0;
-// }

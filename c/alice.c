@@ -1,4 +1,8 @@
+/**
+ * Alice is the sender of the message. She will get the key and key_id from qkd, encrypt the msg and send it to Bob.
+ */
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
@@ -6,7 +10,11 @@
 #include "core/handle_json.h"
 #include "core/cryptografy.h"
 #include "core/connection_qkd.h"
+#include "core/handle_msg.h"
 #include <stdint.h>
+
+unsigned char *read_file(const char *filename, size_t *len);
+char *build_json_payload(char *k_id, unsigned char *ciphertext, size_t len);
 
 #define URL_GETKEY "https://kme-1.acct-%s.etsi-qkd-api.qukaydee.com/api/v1/keys/sae-2%s"
 
@@ -45,11 +53,16 @@ int alice(char *msg) {
 
 //Get key and key_id from qkd and encrypt the msg
 int main(void){
-    const char* text = "Hola Mundo";
+    size_t len = 0;
+    unsigned char *text = read_file("lorem.txt", &len);
+    if (!text) return 1;
     printf("Text send: %s\n",text);
 
     char *acct = account_id();
-    if (!acct) return 1;
+    if (!acct) {
+        free(text);
+        return 1;
+    }
 
     char url[1024];
     char ca_path[512];
@@ -61,26 +74,23 @@ int main(void){
     if (response) {
         char *key = get_key(response);
         char *k_id = get_key_id(response);
-        size_t len = strlen(text);
-        char json_msg[4096];
-        int offset = snprintf(json_msg, sizeof(json_msg), "{\"keys\":[{\"key_ID\":\"%s\",\"ciphertext\":[", k_id);
 
-        EncryptedMessage* msg = encrypt_message(get_key_id(response), (unsigned char*)key, strlen(key), (unsigned char*)text, len);
+        EncryptedMessage* msg = encrypt_message(k_id, (unsigned char*)key, strlen(key), text, len);
         
-        for(size_t i = 0; i < msg->len; i++) {
-            offset += snprintf(json_msg + offset, sizeof(json_msg) - offset, "%d%s", 
-                            msg->ciphertext[i], 
-                            (i == msg->len - 1) ? "" : ",");
+        if (msg) {
+            char *json_msg = build_json_payload(k_id, msg->ciphertext, msg->len);
+            if (json_msg) {
+                alice(json_msg);
+                free(json_msg);
+            }
+            free_message(msg); 
         }
 
-        snprintf(json_msg + offset, sizeof(json_msg) - offset, "]}]}");
-       
-        alice(json_msg);
-        free_message(msg);
+        free(key);
+        free(k_id);
     }
 
     free(acct);
     free(response);
+    free(text);
 }
-
-

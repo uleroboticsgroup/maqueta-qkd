@@ -1,3 +1,9 @@
+/** 
+ * Handle the connection with the https://qukaydee.com and get the response.
+ * The response is in json format and contains the key_id and the key.
+ * The key is used to encrypt and decrypt messages.
+ * **/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,6 +34,7 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
     return realsize;
 }
 
+// Connects to the QKD API and retrieves the key information.
 char *connection_qkd(const char *url, const char *cert_path, const char *key_path, const char *ca_path) {
     CURL *curl;
     CURLcode res;

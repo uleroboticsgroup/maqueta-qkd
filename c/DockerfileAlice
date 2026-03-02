@@ -8,6 +8,7 @@ COPY core ./core
 COPY certs ./certs
 
 COPY alice.c .
+COPY lorem.txt .
 COPY MakefileAlice Makefile
 
 CMD ["make", "run"]
