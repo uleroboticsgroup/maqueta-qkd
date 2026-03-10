@@ -3,7 +3,6 @@
 
 #include <stdlib.h>
 
-//int encrypt_dilithium();
 typedef struct {
     char *key_id;
     unsigned char *ciphertext;

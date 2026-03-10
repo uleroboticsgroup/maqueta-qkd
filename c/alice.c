@@ -11,10 +11,9 @@
 #include "core/cryptografy.h"
 #include "core/connection_qkd.h"
 #include "core/handle_msg.h"
+#include "core/sign_dilithium.h"
 #include <stdint.h>
 
-unsigned char *read_file(const char *filename, size_t *len);
-char *build_json_payload(char *k_id, unsigned char *ciphertext, size_t len);
 
 #define URL_GETKEY "https://kme-1.acct-%s.etsi-qkd-api.qukaydee.com/api/v1/keys/sae-2%s"
 
@@ -45,7 +44,7 @@ int alice(char *msg) {
 
     send(sock, msg , payload_len, 0);
     
-    printf("Encrypted message and key_id sent to Bob!\n");
+    printf("Encrypted message sent to Bob!\n");
 
     close(sock);
     return 0;
@@ -54,43 +53,54 @@ int alice(char *msg) {
 //Get key and key_id from qkd and encrypt the msg
 int main(void){
     size_t len = 0;
-    unsigned char *text = read_file("lorem.txt", &len);
-    if (!text) return 1;
-    printf("Text send: %s\n",text);
+    unsigned char *file = read_file("lorem.txt", &len);
+    if (!file) return 1;
 
-    char *acct = account_id();
-    if (!acct) {
-        free(text);
+    char *ctx = "To Bob";
+
+    SignDilithium* signed_msg = sign(file, len, ctx);
+    if(!signed_msg) {
+        free(file);
         return 1;
     }
 
-    char url[1024];
-    char ca_path[512];
+    char *acct = account_id();
+    if (!acct) {
+        free(file);
+        return 1;
+    }
+    char url[1024],ca_path[512];
     snprintf(ca_path, sizeof(ca_path), "certs/account-%s-server-ca-qukaydee-com.crt", acct);
-
     snprintf(url, sizeof(url), URL_GETKEY, acct, "/enc_keys?number=2&size=1024");
     char *response = connection_qkd(url, "certs/sae-1.crt", "certs/sae-1.key", ca_path);
     
     if (response) {
         char *key = get_key(response);
-        char *k_id = get_key_id(response);
-
-        EncryptedMessage* msg = encrypt_message(k_id, (unsigned char*)key, strlen(key), text, len);
+        char *key_id = get_key_id(response);
+        if (!key || !key_id) return 1;
         
+        EncryptedMessage* msg = encrypt_message(key_id, (unsigned char*)key, strlen(key), signed_msg->msg, len);
+
+        PayloadSend* payload = malloc(sizeof(PayloadSend));
+
+        payload->encrypt_msg = msg;
+        payload->signed_msg = signed_msg;
+        
+
         if (msg) {
-            char *json_msg = build_json_payload(k_id, msg->ciphertext, msg->len);
+            char *json_msg = build_json_payload(payload);
             if (json_msg) {
                 alice(json_msg);
                 free(json_msg);
             }
-            free_message(msg); 
+            
         }
-
+        free(payload);
         free(key);
-        free(k_id);
+        free(key_id);
     }
 
     free(acct);
     free(response);
-    free(text);
+    free(signed_msg);
 }

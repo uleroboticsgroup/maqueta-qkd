@@ -81,6 +81,21 @@ char *get_key(const char *json_data) {
     return extract_first_key_field(json_data, "key");
 }
 
+char *get_ctx(const char *json_data) {
+    return extract_first_key_field(json_data, "ctx");
+}
+
+char *get_sign(const char *json_data) {
+    return extract_first_key_field(json_data, "sign");
+}
+
+char *get_ciphertext(const char *json_data) {
+    return extract_first_key_field(json_data, "ciphertext");
+}
+char *get_pk(const char *json_data) {
+    return extract_first_key_field(json_data, "pk");
+}
+
 //Get the account id
 char *account_id(void) {
     return get_config_value("./core/config.json", "ACCOUNT_ID");

@@ -5,7 +5,6 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
-//#include "dilithium/ref/api.h" 
 #include <stdbool.h>
 
 typedef struct EncryptedMessage{

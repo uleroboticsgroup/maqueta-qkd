@@ -1,6 +1,15 @@
 FROM gcc:latest
 RUN apt-get update && apt-get install -y make
 
+WORKDIR /opt/dilithium_build
+RUN git clone https://github.com/pq-crystals/dilithium.git && \
+    cd dilithium/ref && \
+    make shared
+
+RUN cp dilithium/ref/libpqcrystals_*.so /usr/lib/ && \
+    mkdir -p /usr/include/dilithium && \
+    cp dilithium/ref/*.h /usr/include/dilithium/
+
 WORKDIR /usr/src/qkd
 
 COPY cJSON ./cJSON

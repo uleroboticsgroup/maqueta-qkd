@@ -11,6 +11,8 @@
 #include "core/handle_json.h"
 #include "core/cryptografy.h"
 #include "core/connection_qkd.h"
+#include "core/sign_dilithium.h"
+#include "core/handle_msg.h"
 
 #define URL_GETKEYBYID "https://kme-2.acct-%s.etsi-qkd-api.qukaydee.com/api/v1/keys/sae-1/dec_keys?key_ID=%s"
 
@@ -58,7 +60,7 @@ int bob(){
     }
     buffer[payload_len] = '\0';
 
-    char *k_id = get_key_id(buffer); 
+    char *k_id = get_key_id(buffer);
     char *acct = account_id();
     
     if (!acct) { 
@@ -86,10 +88,30 @@ int bob(){
                 char* textDecript = decrypt_message(msg, (unsigned char*)key, strlen(key));
                  
                 if (textDecript) {
-                    printf("Text decrypted: %s\n", textDecript);
+                    char *ctx = get_ctx(buffer); 
+                    char *sign_hex = get_sign(buffer);
+                    char *pk_hex = get_pk(buffer); 
+                    size_t sig_bin_len, pk_bin_len;
+                    unsigned char* sign_bin = hex_to_binary(sign_hex, &sig_bin_len);
+                    unsigned char* pk_bin = hex_to_binary(pk_hex, &pk_bin_len);
+
+                    if (sign_bin && pk_bin) {
+                        int result = verify(sign_bin, (unsigned char*)textDecript, ctx, pk_bin);
+
+                        if(result == 0) {
+                            printf("Signature verified.\nText decrypted: %s\n", textDecript);
+                        } else {
+                            printf("Signature incorrect\n");
+                        }
+                    }
+    
                     free(textDecript);
+                    free(ctx);
+                    free(sign_hex);
+                    free(pk_hex);
+                    free(sign_bin);
+                    free(pk_bin);
                 }
-                free(key);
             }
         }
 
