@@ -1,40 +1,38 @@
 networks:
-  sae2sae:
+  qkd:
     driver: bridge
     ipam:
       config:
-        - subnet: 192.168.8.0/24 # Define un rango de subred para esta red
+        - subnet: 192.168.8.0/24
 
 services:
-  sae-1:
-    image: sae # Nombre de la imagen
+  bob:
+    image: bob
     build:
       context: .
-      dockerfile: Dockerfile
-    container_name: sae-1
+      dockerfile: c/DockerfileBob #Change depends of the version you want to try
+    container_name: bob
     environment:
-      ACCOUNT_ID: "2810"
+      ACCOUNT_ID: "3009" #Account id from https://qukaydee.com
       CERT_DIR: "/app/"
       SAE_ID: 1
-    hostname: sae-1
-    command: ["/app/start.sh"]
+    hostname: bob
     networks: 
-      sae2sae:
-        ipv4_address: 192.168.8.2 # IP estática
+      qkd:
+        ipv4_address: 192.168.8.2
 
-  sae-2:
-    image: sae # Nombre de la imagen
+  alice:
+    image: alice
     build:
       context: .
-      dockerfile: Dockerfile
-    container_name: sae-2
-    hostname: sae-2
+      dockerfile: c/DockerfileAlice #Change depends of the version you want to try
+    container_name: alice
+    hostname: alice
     environment:
-      ACCOUNT_ID: "2810"
+      ACCOUNT_ID: "3009" #Account id from https://qukaydee.com
       CERT_DIR: "/app/"
       SAE_ID: 2
-    command: ["/app/start.sh"]
     networks: 
-      sae2sae:
-        ipv4_address: 192.168.8.3 # IP estática
+      qkd:
+        ipv4_address: 192.168.8.3
 

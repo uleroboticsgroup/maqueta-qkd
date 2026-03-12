@@ -1,5 +1,5 @@
 /**
- * Listens for incoming messages from Alice, retrieves the corresponding key from the QKD API, and decrypts the message using that key.
+ * Listens for incoming messages from Alice, retrieves the corresponding key from the QKD API, and decrypts the message using that key and verify the signature
  */
 #include <stdio.h>
 #include <stdlib.h>

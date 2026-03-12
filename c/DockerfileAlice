@@ -12,12 +12,12 @@ RUN cp dilithium/ref/libpqcrystals_*.so /usr/lib/ && \
 
 WORKDIR /usr/src/qkd
 
-COPY cJSON ./cJSON
-COPY core ./core
-COPY certs ./certs
+COPY ./c/cJSON ./cJSON
+COPY ./c/core ./core
+COPY ./certs ./certs
 
-COPY alice.c .
-COPY lorem.txt .
-COPY MakefileAlice Makefile
+COPY ./c/alice.c .
+COPY ./lorem.txt .
+COPY ./c/MakefileAlice Makefile
 
 CMD ["make", "run"]

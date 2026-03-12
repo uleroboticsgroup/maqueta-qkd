@@ -1,5 +1,5 @@
 /**
- * Alice is the sender of the message. She will get the key and key_id from qkd, encrypt the msg and send it to Bob.
+ * Alice is the sender of the message. She will get the key and key_id from qkd, encrypt and sign the msg and send it to Bob.
  */
 #include <stdio.h>
 #include <stdlib.h>
