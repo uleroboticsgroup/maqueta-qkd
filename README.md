@@ -1,5 +1,5 @@
 # QKD ETSI API Demo con Rust/C y Docker
-Este proyecto es una maqueta experimental de quantum key distribution o QKD, utilizando [qukaydee.com](https://qukaydee.com). Asi mismo utiliza Docker compose y como lenguaje se han implementado en dos lenguajes (C y Rust), la implementación C firmara el mensaje con el algoritmo pos-cuantico CRYSTALS-Dilithium, utilizando Dilithium5 junto a la libreria [pq-crystals/dilithium](https://github.com/pq-crystals/dilithium)
+Este proyecto es una maqueta experimental de quantum key distribution o QKD, utilizando [qukaydee.com](https://qukaydee.com). Asi mismo utiliza Docker compose y como lenguaje se han implementado en dos lenguajes (C y Rust). La implementación principal en C encriptara el mensaje con el algoritmo de clave simetrica XOR y firmara el mensaje con el algoritmo pos-cuantico CRYSTALS-Dilithium, utilizando Dilithium5 junto a la libreria [pq-crystals/dilithium](https://github.com/pq-crystals/dilithium). Por otra parte la implementacion en Rust, no firmara el mensaje, solo encriptara el mensaje.
 
 ## Descripción
 El proyecto se compone de dos contenedores los cuales se comunicaran entre si:
