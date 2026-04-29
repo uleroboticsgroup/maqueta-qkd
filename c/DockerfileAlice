@@ -1,5 +1,5 @@
 FROM gcc:latest
-RUN apt-get update && apt-get install -y make
+RUN apt-get update && apt-get install -y make libb64-dev
 
 WORKDIR /opt/dilithium_build
 RUN git clone https://github.com/pq-crystals/dilithium.git && \
@@ -19,5 +19,7 @@ COPY ./certs ./certs
 COPY ./c/alice.c .
 COPY ./lorem.txt .
 COPY ./c/MakefileAlice Makefile
+
+RUN ldconfig
 
 CMD ["make", "run"]

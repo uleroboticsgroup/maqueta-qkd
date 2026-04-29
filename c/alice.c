@@ -13,6 +13,8 @@
 #include "core/handle_msg.h"
 #include "core/sign_dilithium.h"
 #include <stdint.h>
+#include <openssl/opensslv.h>
+#include <openssl/crypto.h>
 
 
 #define URL_GETKEY "https://kme-1.acct-%s.etsi-qkd-api.qukaydee.com/api/v1/keys/sae-2%s"
@@ -52,6 +54,7 @@ int alice(char *msg) {
 
 //Get key and key_id from qkd and encrypt the msg
 int main(void){
+    OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CONFIG | OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
     size_t len = 0;
     unsigned char *file = read_file("lorem.txt", &len);
     if (!file) return 1;
@@ -71,7 +74,7 @@ int main(void){
     }
     char url[1024],ca_path[512];
     snprintf(ca_path, sizeof(ca_path), "certs/account-%s-server-ca-qukaydee-com.crt", acct);
-    snprintf(url, sizeof(url), URL_GETKEY, acct, "/enc_keys?number=2&size=1024");
+    snprintf(url, sizeof(url), URL_GETKEY, acct, "/enc_keys?number=2&size=256");
     char *response = connection_qkd(url, "certs/sae-1.crt", "certs/sae-1.key", ca_path);
     
     if (response) {
@@ -96,8 +99,6 @@ int main(void){
             
         }
         free(payload);
-        free(key);
-        free(key_id);
     }
 
     free(acct);

@@ -85,7 +85,7 @@ int bob(){
             char* key = get_key(decp_response);
             
             if (key) {
-                char* textDecript = decrypt_message(msg, (unsigned char*)key, strlen(key));
+                char* textDecript = decrypt_message(msg, (unsigned char*)key);
                  
                 if (textDecript) {
                     char *ctx = get_ctx(buffer); 
