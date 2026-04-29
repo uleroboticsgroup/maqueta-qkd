@@ -67,7 +67,7 @@ unsigned char* hex_to_binary(const char* hexstr, size_t* out_len) {
 
 //Build the json msg to send to Bob. The json have the key_id and the ciphertext.
 char* build_json_payload(const PayloadSend *payload) {
-    size_t ciphertext_max_len = payload->encrypt_msg->len * 4; 
+    size_t ciphertext_max_len = payload->encrypt_msg->length * 4; 
     
     char *hex_sign = binary_to_hex(payload->signed_msg->sign, payload->signed_msg->siglen);
     char *hex_pk = binary_to_hex(payload->signed_msg->pk, payload->signed_msg->siglen);
@@ -104,10 +104,10 @@ char* build_json_payload(const PayloadSend *payload) {
         hex_pk
     );
 
-    for(size_t i = 0; i < payload->encrypt_msg->len; i++) {
+    for(size_t i = 0; i < payload->encrypt_msg->length; i++) {
         offset += snprintf(json_msg + offset, max_size - offset, "%d%s", 
                            payload->encrypt_msg->ciphertext[i], 
-                           (i == payload->encrypt_msg->len - 1) ? "" : ",");
+                           (i == payload->encrypt_msg->length - 1) ? "" : ",");
     }
 
     snprintf(json_msg + offset, max_size - offset, "]}]}");

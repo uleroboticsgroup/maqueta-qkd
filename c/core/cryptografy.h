@@ -6,10 +6,10 @@
 typedef struct {
     char *key_id;
     unsigned char *ciphertext;
-    size_t len;
+    size_t length;
 } EncryptedMessage;
-EncryptedMessage* encrypt_message(const char* key_id, const unsigned char* key, size_t key_len, const unsigned char* plaintext, size_t plain_len);
+
+EncryptedMessage* encrypt_message(const char* key_id, const unsigned char* key, const unsigned char* plaintext, size_t plain_len);
 char* decrypt_message(const EncryptedMessage* msg, const unsigned char* key);
-EncryptedMessage* parse_incoming_message(const char* json_str, const char* key_id);
 
 #endif

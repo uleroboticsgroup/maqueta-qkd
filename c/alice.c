@@ -82,7 +82,7 @@ int main(void){
         char *key_id = get_key_id(response);
         if (!key || !key_id) return 1;
         
-        EncryptedMessage* msg = encrypt_message(key_id, (unsigned char*)key, strlen(key), signed_msg->msg, len);
+        EncryptedMessage* msg = encrypt_message(key_id, (unsigned char*)key, signed_msg->msg, len);
 
         PayloadSend* payload = malloc(sizeof(PayloadSend));
 

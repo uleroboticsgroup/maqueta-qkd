@@ -44,7 +44,7 @@ static unsigned char* decode_base64_key(const char* key) {
 }
 
 // Encrypt the plaintext using AES-256-CBC and return an EncryptedMessage struct
-EncryptedMessage* encrypt_message(const char* key_id, const unsigned char* key, size_t key_len, const unsigned char* plaintext, size_t plain_len) {
+EncryptedMessage* encrypt_message(const char* key_id, const unsigned char* key, const unsigned char* plaintext, size_t plain_len) {
 
     unsigned char* raw_key = decode_base64_key((const char*)key);
     if (!raw_key) {
@@ -63,6 +63,7 @@ EncryptedMessage* encrypt_message(const char* key_id, const unsigned char* key, 
     msg->ciphertext = calloc(1, msg->length);
     if (!msg->ciphertext) {
         free(msg->key_id);
+        free(msg->ciphertext);
         free(msg);
         free(raw_key);
         return NULL;
@@ -77,7 +78,7 @@ EncryptedMessage* encrypt_message(const char* key_id, const unsigned char* key, 
         return NULL;
     }
 
-    /* Initialise the decryption operation. IMPORTANT - ensure you use a key
+    /* Initialise the encryption operation. IMPORTANT - ensure you use a key
     * and IV size appropriate for your cipher
     * We use 256 bit AES, key size is 32 bytes(decode of base64) and IV size is 16 bytes.
     */
@@ -94,7 +95,7 @@ EncryptedMessage* encrypt_message(const char* key_id, const unsigned char* key, 
     }
 
     /* Provide the message to be decrypted, and obtain the plaintext output.
-    * EVP_DecryptUpdate can be called multiple times if necessary
+    * EVP_EncryptUpdate can be called multiple times if necessary
     */
     int len = 0;
     ret = EVP_EncryptUpdate(ctx, msg->ciphertext, &len, plaintext, plain_len);
@@ -139,6 +140,7 @@ char* decrypt_message(const EncryptedMessage* msg, const unsigned char* key) {
         free(raw_key);
         return NULL;
     }
+
     memcpy(plaintext, msg->ciphertext, msg->length);
     EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
     if (!ctx) {
@@ -178,42 +180,4 @@ char* decrypt_message(const EncryptedMessage* msg, const unsigned char* key) {
     EVP_CIPHER_CTX_free(ctx);
     plaintext[len + final_len] = '\0';
     return plaintext;
-}
-
-// Parse the incoming JSON string to extract the ciphertext and key_id
-EncryptedMessage* parse_incoming_message(const char* json_str, const char* key_id) {
-    const char* array_start = strstr(json_str, "\"ciphertext\":[");
-    if (!array_start) return NULL;
-    
-    array_start += 14;
-    
-    size_t count = 1;
-    if (*array_start == ']') {
-        count = 0;
-    } else {
-        for (const char* p = array_start; *p && *p != ']'; p++) {
-            if (*p == ',') count++;
-        }
-    }
-    
-    EncryptedMessage* msg = malloc(sizeof(EncryptedMessage));
-    if (!msg) return NULL;
-
-    msg->key_id = strdup(key_id);
-    msg->length = count;
-    
-    msg->ciphertext = malloc(count > 0 ? count : 1);
-    if (!msg->ciphertext) {
-        free(msg->key_id);
-        free(msg);
-        return NULL;
-    }
-    
-    char* parser_ptr = (char*)array_start;
-    for (size_t i = 0; i < count; i++) {
-        msg->ciphertext[i] = (unsigned char)strtol(parser_ptr, &parser_ptr, 10);
-        if (*parser_ptr == ',') parser_ptr++;
-    }
-    
-    return msg;
 }

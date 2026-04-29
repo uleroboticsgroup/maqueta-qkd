@@ -9,7 +9,6 @@
 #include <unistd.h>
 #include <stdint.h>
 #include "core/handle_json.h"
-#include "core/cryptografy.h"
 #include "core/connection_qkd.h"
 #include "core/sign_dilithium.h"
 #include "core/handle_msg.h"

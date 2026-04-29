@@ -1,6 +1,9 @@
 #ifndef HANDLE_JSON_H
 #define HANDLE_JSON_H
 
+#include "cryptografy.h"
+
+EncryptedMessage* parse_incoming_message(const char* json_str, const char* key_id);
 char *account_id(void);
 char *get_key_id(const char *json_data);
 char *get_key(const char *json_data);

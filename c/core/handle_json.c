@@ -7,7 +7,46 @@
 #include <sys/stat.h>
 #include "cJSON.h"
 #include "handle_json.h"
+#include "cryptografy.h"
 #include <stdio.h>
+
+// Parse the incoming JSON string to extract the ciphertext and key_id
+EncryptedMessage* parse_incoming_message(const char* json_str, const char* key_id) {
+    const char* array_start = strstr(json_str, "\"ciphertext\":[");
+    if (!array_start) return NULL;
+    
+    array_start += 14;
+    
+    size_t count = 1;
+    if (*array_start == ']') {
+        count = 0;
+    } else {
+        for (const char* p = array_start; *p && *p != ']'; p++) {
+            if (*p == ',') count++;
+        }
+    }
+    
+    EncryptedMessage* msg = malloc(sizeof(EncryptedMessage));
+    if (!msg) return NULL;
+
+    msg->key_id = strdup(key_id);
+    msg->length = count;
+    
+    msg->ciphertext = malloc(count > 0 ? count : 1);
+    if (!msg->ciphertext) {
+        free(msg->key_id);
+        free(msg);
+        return NULL;
+    }
+    
+    char* parser_ptr = (char*)array_start;
+    for (size_t i = 0; i < count; i++) {
+        msg->ciphertext[i] = (unsigned char)strtol(parser_ptr, &parser_ptr, 10);
+        if (*parser_ptr == ',') parser_ptr++;
+    }
+    
+    return msg;
+}
 
 //Extract the field from the json response
 static char *extract_first_key_field(const char *json_data, const char *field) {
