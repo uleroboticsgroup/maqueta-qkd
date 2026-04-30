@@ -8,34 +8,51 @@
 #include "cryptografy.h"
 
 
-//Read the file and return the content and the len.
-unsigned char* read_file(const char *filename, size_t *out_len) {
+/**
+ * Read the file and return the content and the len.
+ * @filename: Path to the file to read
+ * @out_len: Length of the read content
+ */
+unsigned char *read_file(const char *filename, size_t *length) {
     FILE *f = fopen(filename, "rb");
+    if (!f) {
+        perror("Failed to open file");
+        return NULL;
+    }
+
     fseek(f, 0, SEEK_END);
-    long fsize = ftell(f);
+    long file_size = ftell(f);
     fseek(f, 0, SEEK_SET);
-
-    if (fsize < 0) {
+    
+    if (file_size < 0) {
         fclose(f);
         return NULL;
     }
 
-    unsigned char *buffer = malloc(fsize + 1);
+    *length = (size_t)file_size;
+
+    unsigned char *buffer = (unsigned char *)malloc(*length);
     if (!buffer) {
-        perror("Failed to allocate memory for file");
         fclose(f);
         return NULL;
     }
 
-    size_t read_bytes = fread(buffer, 1, fsize, f);
-    buffer[read_bytes] = '\0';
-    *out_len = read_bytes;
-
+    size_t bytes_read = fread(buffer, 1, *length, f);
     fclose(f);
+
+    if (bytes_read != *length) {
+        free(buffer);
+        return NULL;
+    }
+
     return buffer;
 }
 
-//Change raw binary to hexadecimal
+/**
+ * Change raw binary to hexadecimal
+ * @bin: Binary data to convert
+ * @len: Length of the binary data
+ */
 char* binary_to_hex(const unsigned char* bin, size_t len) {
     if (!bin || len == 0) return NULL;
     char* hex = malloc(len * 2 + 1);
@@ -48,6 +65,11 @@ char* binary_to_hex(const unsigned char* bin, size_t len) {
     return hex;
 }
 
+/**
+ * Change hexadecimal to raw binary
+ * @hexstr: Hexadecimal string to convert
+ * @out_len: Length of the output binary data
+ */
 unsigned char* hex_to_binary(const char* hexstr, size_t* out_len) {
     if (!hexstr) return NULL;
     size_t len = strlen(hexstr);
@@ -65,7 +87,10 @@ unsigned char* hex_to_binary(const char* hexstr, size_t* out_len) {
     return bin;
 }
 
-//Build the json msg to send to Bob. The json have the key_id and the ciphertext.
+/**
+* Build the json msg to send to Bob. The json have the key_id and the ciphertext.
+* @payload: PayloadSend struct with the ciphertext and the sign of the msg.
+*/
 char* build_json_payload(const PayloadSend *payload) {
     size_t ciphertext_max_len = payload->encrypt_msg->length * 4; 
     
@@ -95,11 +120,13 @@ char* build_json_payload(const PayloadSend *payload) {
         "{\"keys\":[{"
         "\"key_ID\":\"%s\","
         "\"ctx\":\"%s\","
+        "\"mlen\":\"%zu\","
         "\"sign\":\"%s\","
         "\"pk\":\"%s\","
         "\"ciphertext\":[",
         payload->encrypt_msg->key_id,
         payload->signed_msg->ctx,
+        payload->signed_msg->mlen,
         hex_sign,
         hex_pk
     );

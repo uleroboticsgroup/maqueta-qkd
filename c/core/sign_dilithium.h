@@ -12,6 +12,6 @@ typedef struct SignDilithium{
 }SignDilithium;
 
 SignDilithium* sign(unsigned char *msg, size_t mlen, char *ctx);
-int verify(unsigned char *sign, unsigned char *msg, char *ctx, unsigned char *pk);
+int verify(unsigned char *sign, unsigned char *msg,size_t mlen, char *ctx, unsigned char *pk);
 
 #endif

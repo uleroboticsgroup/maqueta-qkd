@@ -64,12 +64,11 @@ SignDilithium* sign(unsigned char *msg, size_t msglen, char *ctx) {
  * PK: Public key
  * CTX: Context recived
  */
-int verify(unsigned char *sign, unsigned char *msg, char *ctx, unsigned char *pk) {
+int verify(unsigned char *sign, unsigned char *msg,size_t mlen, char *ctx, unsigned char *pk) {
     size_t siglen = pqcrystals_dilithium5_BYTES; 
-    size_t msglen = strlen((char*)msg); 
     size_t ctxlen = strlen(ctx);
 
-    int result = pqcrystals_dilithium5_ref_verify((const uint8_t*)sign,siglen,(const uint8_t*)msg, msglen,(const uint8_t*)ctx,ctxlen,(const uint8_t*)pk);
+    int result = pqcrystals_dilithium5_ref_verify((const uint8_t*)sign,siglen,(const uint8_t*)msg, mlen,(const uint8_t*)ctx,ctxlen,(const uint8_t*)pk);
 
     return result;
 } 

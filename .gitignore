@@ -1,4 +1,3 @@
 certs/
 python/
 rust/target
-c/core/cryptlib

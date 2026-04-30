@@ -10,7 +10,11 @@
 #include "cryptografy.h"
 #include <stdio.h>
 
-// Parse the incoming JSON string to extract the ciphertext and key_id
+/**
+ * Parse the incoming JSON string to extract the ciphertext and key_id
+ * @json_str: The JSON string to parse
+ * @key_id: The key_id to associate with the extracted ciphertext
+ */
 EncryptedMessage* parse_incoming_message(const char* json_str, const char* key_id) {
     const char* array_start = strstr(json_str, "\"ciphertext\":[");
     if (!array_start) return NULL;
@@ -48,7 +52,11 @@ EncryptedMessage* parse_incoming_message(const char* json_str, const char* key_i
     return msg;
 }
 
-//Extract the field from the json response
+/**
+ * Extract the field from the json response
+ * @json_data: The JSON string to parse
+ * @field: The field to extract
+ */
 static char *extract_first_key_field(const char *json_data, const char *field) {
     if (!json_data) return NULL;
     cJSON *root = cJSON_Parse(json_data);
@@ -68,37 +76,66 @@ static char *extract_first_key_field(const char *json_data, const char *field) {
     return result;
 }
 
-//Get the key_id from the json response
+/**
+ * Get the key_id from the json response
+ * @json_data: The JSON string to parse
+ */
 char *get_key_id(const char *json_data) {
     return extract_first_key_field(json_data, "key_ID");
 }
 
-//Get the key from the json response
+/**
+ * Get the key from the json response
+ * @json_data: The JSON string to parse
+ */
 char *get_key(const char *json_data) {
     return extract_first_key_field(json_data, "key");
 }
 
-//Get the context value
+/**
+ * Get the context value from the json response
+ * @json_data: The JSON string to parse
+ */
 char *get_ctx(const char *json_data) {
     return extract_first_key_field(json_data, "ctx");
 }
 
-//Get the signatura value
+/**
+ * Get the message length value from the json response
+ * @json_data: The JSON string to parse
+ */
+char *get_mlen(const char *json_data) {
+    return extract_first_key_field(json_data, "mlen");
+}
+
+/**
+ * Get the signature value from the json response
+ * @json_data: The JSON string to parse
+ */
 char *get_sign(const char *json_data) {
     return extract_first_key_field(json_data, "sign");
 }
 
-//Get the ciphertext
+/**
+ * Get the ciphertext from the json response
+ * @json_data: The JSON string to parse
+ */
 char *get_ciphertext(const char *json_data) {
     return extract_first_key_field(json_data, "ciphertext");
 }
 
-//Get the public key
+/**
+ * Get the public key from the json response
+ * @json_data: The JSON string to parse
+ */
 char *get_pk(const char *json_data) {
     return extract_first_key_field(json_data, "pk");
 }
 
-//Get the ACCOUNT_ID enviroment value
+/**
+ * Get the ACCOUNT_ID environment value
+ * Returns: The ACCOUNT_ID value or NULL if not set
+ */
 char *account_id(void) {
     char *env_val = getenv("ACCOUNT_ID");
     if (env_val != NULL) {

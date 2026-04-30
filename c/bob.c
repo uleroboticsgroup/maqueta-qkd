@@ -90,12 +90,13 @@ int bob(){
                     char *ctx = get_ctx(buffer); 
                     char *sign_hex = get_sign(buffer);
                     char *pk_hex = get_pk(buffer); 
+                    size_t mlen = strtoul(get_mlen(buffer), NULL, 10);
                     size_t sig_bin_len, pk_bin_len;
                     unsigned char* sign_bin = hex_to_binary(sign_hex, &sig_bin_len);
                     unsigned char* pk_bin = hex_to_binary(pk_hex, &pk_bin_len);
 
                     if (sign_bin && pk_bin) {
-                        int result = verify(sign_bin, (unsigned char*)textDecript, ctx, pk_bin);
+                        int result = verify(sign_bin, (unsigned char*)textDecript, mlen, ctx, pk_bin);
 
                         if(result == 0) {
                             printf("Signature verified.\nText decrypted: %s\n", textDecript);

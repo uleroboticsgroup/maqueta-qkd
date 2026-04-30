@@ -34,7 +34,13 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
     return realsize;
 }
 
-// Connects to the QKD API and retrieves the key information.
+/**
+ * Connect to the qukaydee server and get the key_id and the key.
+ * @url: The URL of the qukaydee server.
+ * @cert_path: The path to the client certificate.
+ * @key_path: The path to the client key.
+ * @ca_path: The path to the CA certificate.
+ */
 char *connection_qkd(const char *url, const char *cert_path, const char *key_path, const char *ca_path) {
     CURL *curl;
     CURLcode res;

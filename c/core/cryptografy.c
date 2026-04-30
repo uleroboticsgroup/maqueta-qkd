@@ -19,7 +19,11 @@ typedef struct EncryptedMessage{
     size_t length;
 } EncryptedMessage;
 
-// Decode a base64-encoded key to raw bytes
+/**
+ * Decode a base64-encoded key to raw bytes
+ * @key: The base64-encoded key to decode
+ * Returns: The decoded raw key or NULL on failure
+ */
 static unsigned char* decode_base64_key(const char* key) {
     size_t b64_len = strlen(key);
     if (b64_len == 0) return NULL;
@@ -43,7 +47,14 @@ static unsigned char* decode_base64_key(const char* key) {
     return raw_key;
 }
 
-// Encrypt the plaintext using AES-256-CBC and return an EncryptedMessage struct
+/**
+ * Encrypt the plaintext using AES-256-CBC and return an EncryptedMessage struct
+ * @key_id: The key ID to associate with the encrypted message
+ * @key: The base64-encoded key to use for encryption
+ * @plaintext: The plaintext to encrypt
+ * @plain_len: The length of the plaintext
+ * Returns: The encrypted message or NULL on failure
+ */
 EncryptedMessage* encrypt_message(const char* key_id, const unsigned char* key, const unsigned char* plaintext, size_t plain_len) {
 
     unsigned char* raw_key = decode_base64_key((const char*)key);
@@ -127,7 +138,12 @@ EncryptedMessage* encrypt_message(const char* key_id, const unsigned char* key, 
     return msg;
 }
 
-// Decrypt the ciphertext using AES-256-CBC and return the plaintext
+/**
+ * Decrypt the ciphertext using AES-256-CBC and return the plaintext
+ * @msg: The encrypted message to decrypt
+ * @key: The base64-encoded key to use for decryption
+ * Returns: The decrypted plaintext or NULL on failure
+ */
 char* decrypt_message(const EncryptedMessage* msg, const unsigned char* key) {
 
     unsigned char* raw_key = decode_base64_key((const char*)key);

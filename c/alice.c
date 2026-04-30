@@ -56,7 +56,7 @@ int alice(char *msg) {
 int main(void){
     OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CONFIG | OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
     size_t len = 0;
-    unsigned char *file = read_file("lorem.txt", &len);
+    unsigned char *file = read_file("rosbag2.db3", &len);
     if (!file) return 1;
 
     char *ctx = "To Bob";
