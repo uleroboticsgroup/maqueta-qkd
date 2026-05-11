@@ -17,7 +17,7 @@
 
 //Bob receive the msg and key_id from Alice, then get the key from qkd and decrypt the msg.
 int bob(){
-    int server_fd, new_socket;
+    int server_fd;
     struct sockaddr_in address;
     int addrlen = sizeof(address);
 
@@ -30,103 +30,115 @@ int bob(){
     bind(server_fd, (struct sockaddr *)&address, sizeof(address));
     listen(server_fd, 3);
 
-    printf("Server (Bob) listening on port 8080...\n");
+    printf("Bob listening on port 8080...\n");
 
-    new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
-    
-    uint32_t net_len = 0;
-    if (read(new_socket, &net_len, 4) != 4) {
-        printf("Failed to read header\n");
-        close(new_socket);
-        close(server_fd);
-        return 1;
-    }
-    
-    uint32_t payload_len = ntohl(net_len);
-
-    char *buffer = malloc(payload_len + 1);
-    if (!buffer) {
-        close(new_socket);
-        close(server_fd);
-        return 1;
-    }
-
-    uint32_t total_read = 0;
-    while (total_read < payload_len) {
-        ssize_t bytes_read = read(new_socket, buffer + total_read, payload_len - total_read);
-        if (bytes_read <= 0) break;
-        total_read += (uint32_t)bytes_read;
-    }
-    buffer[payload_len] = '\0';
-
-    char *k_id = get_key_id(buffer);
-    char *acct = account_id();
-    
-    if (!acct) { 
-        free(k_id);
-        free(buffer); 
-        close(new_socket);
-        close(server_fd);
-        return 1; 
-    }
-    
-    if (k_id) {
-        EncryptedMessage* msg = parse_incoming_message(buffer, k_id);
-
-        char ca_path[512];
-        char url[1024];
-        snprintf(ca_path, sizeof(ca_path), "certs/account-%s-server-ca-qukaydee-com.crt", acct);
-        snprintf(url, sizeof(url), URL_GETKEYBYID, acct, k_id);
+    while (1) {
+        int new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
+        if (new_socket < 0) {
+            perror("accept");
+            continue;
+        }
         
-        char *decp_response = connection_qkd(url, "certs/sae-2.crt", "certs/sae-2.key", ca_path);
-            
-        if (decp_response && msg) {
-            char* key = get_key(decp_response);
-            
-            if (key) {
-                char* textDecript = decrypt_message(msg, (unsigned char*)key);
-                 
-                if (textDecript) {
-                    char *ctx = get_ctx(buffer); 
-                    char *sign_hex = get_sign(buffer);
-                    char *pk_hex = get_pk(buffer); 
-                    size_t mlen = strtoul(get_mlen(buffer), NULL, 10);
-                    size_t sig_bin_len, pk_bin_len;
-                    unsigned char* sign_bin = hex_to_binary(sign_hex, &sig_bin_len);
-                    unsigned char* pk_bin = hex_to_binary(pk_hex, &pk_bin_len);
+        uint32_t net_len = 0;
+        if (read(new_socket, &net_len, 4) != 4) {
+            printf("Failed to read header\n");
+            close(new_socket);
+            continue;
+        }
+        
+        uint32_t payload_len = ntohl(net_len);
 
-                    if (sign_bin && pk_bin) {
-                        int result = verify(sign_bin, (unsigned char*)textDecript, mlen, ctx, pk_bin);
+        char *buffer = malloc(payload_len + 1);
+        if (!buffer) {
+            close(new_socket);
+            continue;
+        }
 
-                        if(result == 0) {
-                            printf("Signature verified.\nText decrypted: %s\n", textDecript);
-                        } else {
-                            printf("Signature incorrect\n");
+        uint32_t total_read = 0;
+        while (total_read < payload_len) {
+            ssize_t bytes_read = read(new_socket, buffer + total_read, payload_len - total_read);
+            if (bytes_read <= 0) break;
+            total_read += (uint32_t)bytes_read;
+        }
+        buffer[payload_len] = '\0';
+
+        char *k_id = get_key_id(buffer);
+        char *acct = account_id();
+        
+        if (!acct) { 
+            free(k_id);
+            free(buffer); 
+            close(new_socket);
+            continue; 
+        }
+        
+        int should_exit = 0;
+        if (k_id) {
+            EncryptedMessage* msg = parse_incoming_message(buffer, k_id);
+
+            char ca_path[512];
+            char url[1024];
+            snprintf(ca_path, sizeof(ca_path), "certs/account-%s-server-ca-qukaydee-com.crt", acct);
+            snprintf(url, sizeof(url), URL_GETKEYBYID, acct, k_id);
+            
+            char *decp_response = connection_qkd(url, "certs/sae-2.crt", "certs/sae-2.key", ca_path);
+                
+            if (decp_response && msg) {
+                char* key = get_key(decp_response);
+                
+                if (key) {
+                    char* textDecript = decrypt_message(msg, (unsigned char*)key);
+                     
+                    if (textDecript) {
+                        char *ctx = get_ctx(buffer); 
+                        char *sign_hex = get_sign(buffer);
+                        char *pk_hex = get_pk(buffer); 
+                        size_t mlen = strtoul(get_mlen(buffer), NULL, 10);
+                        size_t sig_bin_len, pk_bin_len;
+                        unsigned char* sign_bin = hex_to_binary(sign_hex, &sig_bin_len);
+                        unsigned char* pk_bin = hex_to_binary(pk_hex, &pk_bin_len);
+
+                        if (sign_bin && pk_bin) {
+                            int result = verify(sign_bin, (unsigned char*)textDecript, mlen, ctx, pk_bin);
+
+                            if(result == 0) {
+                                if (strcmp(textDecript, "{\"end\":true}") == 0) {
+                                    should_exit = 1;
+                                }
+                                else{printf("Signature verified.\nText decrypted: %s\n", textDecript);}
+                            } else {
+                                printf("Signature incorrect\n");
+                            }
                         }
+        
+                        free(textDecript);
+                        free(ctx);
+                        free(sign_hex);
+                        free(pk_hex);
+                        free(sign_bin);
+                        free(pk_bin);
                     }
-    
-                    free(textDecript);
-                    free(ctx);
-                    free(sign_hex);
-                    free(pk_hex);
-                    free(sign_bin);
-                    free(pk_bin);
                 }
             }
+
+            if (msg) {
+                free(msg->key_id);
+                free(msg->ciphertext);
+                free(msg);
+            }
+            free(decp_response);
+            free(k_id);
         }
 
-        if (msg) {
-            free(msg->key_id);
-            free(msg->ciphertext);
-            free(msg);
+        free(buffer);
+        free(acct);
+        close(new_socket);
+        
+        if (should_exit) {
+            break;
         }
-        free(decp_response);
-        free(k_id);
     }
 
-    free(buffer);
-    free(acct);
-    close(new_socket);
     close(server_fd);
     return 0;
 }

@@ -35,4 +35,14 @@ services:
     networks: 
       qkd:
         ipv4_address: 192.168.8.3
-
+  
+  robot:
+    image: robot
+    build:
+      context: .
+      dockerfile: c/DockerfileRos
+    container_name: robot
+    hostname: robot
+    networks: 
+      qkd:
+        ipv4_address: 192.168.8.4
