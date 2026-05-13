@@ -1,8 +1,16 @@
 # QKD ETSI API Demo con Rust/C y Docker
-Este proyecto es una maqueta experimental de quantum key distribution o QKD, utilizando [qukaydee.com](https://qukaydee.com). Asi mismo utiliza Docker compose y como lenguaje se han implementado en dos lenguajes (C y Rust). La implementación principal en C encriptara el mensaje con el algoritmo de clave simetrica XOR y firmara el mensaje con el algoritmo pos-cuantico CRYSTALS-Dilithium, utilizando Dilithium5 junto a la libreria [pq-crystals/dilithium](https://github.com/pq-crystals/dilithium). Por otra parte la implementacion en Rust, no firmara el mensaje, solo encriptara el mensaje.
+Este proyecto es una maqueta experimental de quantum key distribution o QKD, utilizando [qukaydee.com](https://qukaydee.com). Asi mismo utiliza Docker compose y como lenguaje se han implementado en dos lenguajes (C y Rust). La implementación principal en C encriptara el mensaje con el algoritmo de clave simetrica AES-256 y firmara el mensaje con el algoritmo poscuántico CRYSTALS-Dilithium, utilizando Dilithium5 junto a la libreria [pq-crystals/dilithium](https://github.com/pq-crystals/dilithium). Por otra parte la implementacion en Rust, no firmara el mensaje, solo encriptara el mensaje.
 
 ## Descripción
-El proyecto se compone de dos contenedores los cuales se comunicaran entre si:
+En la implementación de C se compone de tres contenedores los cuales se comunicaran entre si:
+
+- **Robot**: Este contenedor reproducira un rosbag y envira los mensajes a Alice.
+- **Alice**: Este contenedor leera los mensajes, encriptara su contenido, firmara el contenido con Dilithium5 y sera enviado a Bob.
+- **Bob**: Este contenedor escuchara el mensaje de Alice, desencriptara el mensaje y verificara la contenido. Al finalizar mostrara los mensajes.
+
+Ambos servicios se ejecutan en contenedores separados orquestados por `docker-compose`.
+
+En la implementación de Rust se compone de dos contenedores los cuales se comunicaran entre si:
 
 - **Alice**: Este contenedor leera un archivo `lorem.txt`, encriptara su contenido, firmara el contenido con Dilithium5 y sera enviado a Bob.
 - **Bob**: Este contenedor escuchara el mensaje de Alice, desencriptara el mensaje y verificara la contenido.
