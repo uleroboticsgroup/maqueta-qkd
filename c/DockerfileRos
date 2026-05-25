@@ -29,14 +29,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-humble-ros-base=0.10.0-1* \
     && rm -rf /var/lib/apt/lists/*
 
-# Install turtlesim
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ros-humble-ros-base=0.10.0-1* \
-    ros-humble-turtlesim \
-    && rm -rf /var/lib/apt/lists/*
-
 # Copy the files
-COPY ./rosbag2.db3 /app/rosbag2.db3
 COPY ./c/setup.bash /app/setup.bash
 COPY ./c/rosbag_subscriber.py /app/rosbag_subscriber.py
 

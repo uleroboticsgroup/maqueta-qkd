@@ -1,10 +1,9 @@
 #!/bin/bash
 set -e
 source /opt/ros/humble/setup.bash
+set +e
 
-ros2 run turtlesim turtlesim_node &
-TURTLE_PID=$!
-
+export QT_QPA_PLATFORM=offscreen
 python3 rosbag_subscriber.py &
 SUB_PID=$!
 
@@ -23,12 +22,19 @@ except Exception as e:
     pass
   "
   kill -TERM "$SUB_PID" 2>/dev/null || true
-  kill -TERM "$TURTLE_PID" 2>/dev/null || true
+  kill -TERM "$ECHO_PID" 2>/dev/null || true
   wait "$SUB_PID" 2>/dev/null || true
-  wait "$TURTLE_PID" 2>/dev/null || true
+  wait "$ECHO_PID" 2>/dev/null || true
 }
 trap cleanup EXIT
 
-ros2 bag play rosbag2.db3
+sleep 5
 
-echo "Bag playback finished, shutting down."
+ros2 bag play /workspace/carry_try_1
+BAG_EXIT=$?
+
+echo "Bag playback finished (exit code: $BAG_EXIT), shutting down."
+
+sleep 5
+
+echo "Script completed, exit."

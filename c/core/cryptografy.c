@@ -12,6 +12,7 @@
 #include <openssl/aes.h>
 #include <b64/cdecode.h>
 #include <b64/cencode.h>
+#include <sys/time.h>
 
 typedef struct EncryptedMessage{
     char* key_id;
@@ -62,6 +63,10 @@ EncryptedMessage* encrypt_message(const char* key_id, const unsigned char* key, 
         printf("Failed to decode key for decryption\n");
         return NULL;
     }
+
+    //Inicio timer
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
 
     EncryptedMessage* msg = malloc(sizeof(EncryptedMessage));
     if (!msg) {
@@ -133,6 +138,20 @@ EncryptedMessage* encrypt_message(const char* key_id, const unsigned char* key, 
         return NULL;
     }
 
+    //Guardamos el tiempo de cifrado en un archivo de logs
+    gettimeofday(&end, NULL);
+    long seconds = end.tv_sec - start.tv_sec;
+    long microseconds = end.tv_usec - start.tv_usec;
+    double elapsed_ms = (seconds * 1000.0) + (microseconds / 1000.0);
+    
+    FILE *log_file = fopen("crypto_metricsEncrypt.log", "a");
+    if (log_file != NULL) {
+        fprintf(log_file, "CIFRADO:%.4f\n", elapsed_ms);
+        fclose(log_file);
+    } else {
+        printf("Error al abrir el archivo de logs.\n");
+    }
+
     msg->length = len + final_len;
     EVP_CIPHER_CTX_free(ctx);
     return msg;
@@ -157,6 +176,10 @@ char* decrypt_message(const EncryptedMessage* msg, const unsigned char* key) {
         return NULL;
     }
 
+    //Inicio timer
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
+    
     memcpy(plaintext, msg->ciphertext, msg->length);
     EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
     if (!ctx) {
@@ -191,6 +214,19 @@ char* decrypt_message(const EncryptedMessage* msg, const unsigned char* key) {
         EVP_CIPHER_CTX_free(ctx);
         free(plaintext);
         return NULL;
+    }
+
+    gettimeofday(&end, NULL);
+    long seconds = end.tv_sec - start.tv_sec;
+    long microseconds = end.tv_usec - start.tv_usec;
+    double elapsed_ms = (seconds * 1000.0) + (microseconds / 1000.0);
+
+    FILE *log_file = fopen("crypto_metricsDecrypt.log", "a");
+    if (log_file != NULL) {
+        fprintf(log_file, "DESCIFRADO:%.4f\n", elapsed_ms);
+        fclose(log_file);
+    } else {
+        printf("Error al abrir el archivo de logs.\n");
     }
 
     EVP_CIPHER_CTX_free(ctx);

@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
+#include <sys/time.h>
 
 
 #define URL_GETKEY "https://kme-1.acct-%s.etsi-qkd-api.qukaydee.com/api/v1/keys/sae-2%s"
@@ -61,10 +62,13 @@ static int sign_encrypt(unsigned char* buffer, size_t len){
     // size_t len = 0;
     // unsigned char *file = read_file("rosbag2.db3", &len);
     // if (!file) return 1;
-
     char *ctx = "To Bob";
 
     SignDilithium* signed_msg = sign(buffer, len, ctx);
+
+    //Inicio timer
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
 
     char *acct = account_id();
     char url[1024],ca_path[512];
@@ -72,6 +76,19 @@ static int sign_encrypt(unsigned char* buffer, size_t len){
     snprintf(url, sizeof(url), URL_GETKEY, acct, "/enc_keys?number=2&size=256");
     char *response = connection_qkd(url, "certs/sae-1.crt", "certs/sae-1.key", ca_path);
     
+    gettimeofday(&end, NULL);
+    long seconds = end.tv_sec - start.tv_sec;
+    long microseconds = end.tv_usec - start.tv_usec;
+    double elapsed_ms = (seconds * 1000.0) + (microseconds / 1000.0);
+
+    FILE *log_file = fopen("crypto_metricsQKD.log", "a");
+    if (log_file != NULL) {
+        fprintf(log_file, "QKD:%.4f\n", elapsed_ms);
+        fclose(log_file);
+    } else {
+        printf("Error al abrir el archivo de logs.\n");
+    }
+
     if (response) {
         char *key = get_key(response);
         char *key_id = get_key_id(response);
@@ -103,8 +120,11 @@ static int sign_encrypt(unsigned char* buffer, size_t len){
 /** Handles the connection from the rosbag and processes the incoming messages.
  *  @client_socket: The socket connected to the rosbag.
  */
-static int handle_rosbag_connection(int client_socket) {
+static int handle_rosbag_connection(int client_socket,int *counter) {
     while (1) {
+        //Inicio timer
+        struct timeval start, end;
+        gettimeofday(&start, NULL);
         uint32_t net_len = 0;
         ssize_t n = read(client_socket, &net_len, sizeof(net_len));
         uint32_t payload_len = ntohl(net_len);
@@ -133,6 +153,21 @@ static int handle_rosbag_connection(int client_socket) {
             free(buffer);
             return 1;
         }
+        
+        gettimeofday(&end, NULL);
+        long seconds = end.tv_sec - start.tv_sec;
+        long microseconds = end.tv_usec - start.tv_usec;
+        double elapsed_ms = (seconds * 1000.0) + (microseconds / 1000.0);
+        
+        FILE *log_file = fopen("crypto_metricsRosbagMsg.log", "a");
+        if (log_file != NULL) {
+            fprintf(log_file, "Rosbag:%.4f\n", elapsed_ms);
+            fclose(log_file);
+        } else {
+            printf("Error al abrir el archivo de logs.\n");
+        }
+        (*counter)++;
+        printf("Received message %d from rosbag\n", *counter);
         sign_encrypt(buffer, payload_len);
         free(buffer);
     }
@@ -177,6 +212,7 @@ static int start_rosbag_server(uint16_t port) {
 
     printf("Alice TCP server listening on port %u\n", port);
 
+    int counter = 0;
     while (1) {
         struct sockaddr_in client_addr;
         socklen_t addrlen = sizeof(client_addr);
@@ -185,7 +221,7 @@ static int start_rosbag_server(uint16_t port) {
             perror("accept");
             continue;
         }
-        if (handle_rosbag_connection(client_sock) == 1) {
+        if (handle_rosbag_connection(client_sock, &counter) == 1) {
             break;
         }
         close(client_sock);

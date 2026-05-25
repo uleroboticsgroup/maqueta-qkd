@@ -17,7 +17,6 @@ COPY ./c/core ./core
 COPY ./certs ./certs
 
 COPY ./c/alice.c .
-COPY ./rosbag2.db3 .
 COPY ./c/MakefileAlice Makefile
 
 RUN ldconfig

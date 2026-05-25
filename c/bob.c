@@ -31,7 +31,7 @@ int bob(){
     listen(server_fd, 3);
 
     printf("Bob listening on port 8080...\n");
-
+    int counter = 0;
     while (1) {
         int new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
         if (new_socket < 0) {
@@ -105,7 +105,11 @@ int bob(){
                                 if (strcmp(textDecript, "{\"end\":true}") == 0) {
                                     should_exit = 1;
                                 }
-                                else{printf("Signature verified.\nText decrypted: %s\n", textDecript);}
+                                else{
+                                    counter++;
+                                    printf("Received message %d from Alice\n", counter);
+                                    printf("Signature verified.\nText decrypted: %s\n", textDecript);
+                                }
                             } else {
                                 printf("Signature incorrect\n");
                             }

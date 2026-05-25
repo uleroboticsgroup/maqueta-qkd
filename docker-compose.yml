@@ -43,6 +43,8 @@ services:
       dockerfile: c/DockerfileRos
     container_name: robot
     hostname: robot
+    volumes:
+      - ./carry_try_1:/workspace/carry_try_1:ro
     networks: 
       qkd:
         ipv4_address: 192.168.8.4
