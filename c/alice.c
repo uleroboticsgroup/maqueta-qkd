@@ -123,8 +123,7 @@ static int sign_encrypt(unsigned char* buffer, size_t len){
 static int handle_rosbag_connection(int client_socket,int *counter) {
     while (1) {
         //Inicio timer
-        struct timeval start, end;
-        gettimeofday(&start, NULL);
+        
         uint32_t net_len = 0;
         ssize_t n = read(client_socket, &net_len, sizeof(net_len));
         uint32_t payload_len = ntohl(net_len);
@@ -138,6 +137,8 @@ static int handle_rosbag_connection(int client_socket,int *counter) {
             perror("Failed to read payload length");
             return 1;
         }
+        struct timeval start, end;
+        gettimeofday(&start, NULL);
 
         while (total_read < payload_len) {
             ssize_t bytes_read = read(client_socket, buffer + total_read, payload_len - total_read);
@@ -148,16 +149,17 @@ static int handle_rosbag_connection(int client_socket,int *counter) {
             total_read += (size_t)bytes_read;
         }
         buffer[payload_len] = '\0';
+        gettimeofday(&end, NULL);
+        long seconds = end.tv_sec - start.tv_sec;
+        long microseconds = end.tv_usec - start.tv_usec;
+        double elapsed_ms = (seconds * 1000.0) + (microseconds / 1000.0);
         if (strcmp((char*)buffer, "{\"end\":true}") == 0) {
             sign_encrypt(buffer, payload_len);
             free(buffer);
             return 1;
         }
         
-        gettimeofday(&end, NULL);
-        long seconds = end.tv_sec - start.tv_sec;
-        long microseconds = end.tv_usec - start.tv_usec;
-        double elapsed_ms = (seconds * 1000.0) + (microseconds / 1000.0);
+        
         
         FILE *log_file = fopen("crypto_metricsRosbagMsg.log", "a");
         if (log_file != NULL) {
