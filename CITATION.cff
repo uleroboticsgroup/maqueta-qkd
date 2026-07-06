@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Maqueta QKD"
+authors:
+  - family-names: "Casado-Gonzalez"
+    given-names: "Alexia"
+    affiliation: "Universidad de León"
+repository-code: "https://github.com/uleroboticsgroup/maqueta-qkd"
+url: "https://github.com/uleroboticsgroup/maqueta-qkd/tree/evaluation"
+version: "1.0.0"
+date-released: "2026-07-06"
+keywords:
+  - QKD
+  - quantum key distribution
+  - post-quantum cryptography
+  - robotics
+  - CRYSTALS-Dilithium
